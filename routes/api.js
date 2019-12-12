@@ -13,16 +13,16 @@ var MongoClient = require('mongodb').MongoClient;
 var ObjectId = require('mongodb').ObjectId;
 const MONGODB_CONNECTION_STRING = process.env.DB;
 const mongo = new MongoClient(MONGODB_CONNECTION_STRING, { useUnifiedTopology: true });
+let col;
 
-(async function() {
-    await mongo.connect((err, client) => {
-        if (err) {
-            console.error('connection error to db');
-        } else {
-            console.log('db connection successful');
-        }
-    });
-})()
+mongo.connect((err, client) => {
+    if (err) {
+        console.error('connection error to db');
+    } else {
+        console.log('db connection successful');
+        col = mongo.db().collection('books');
+    }
+});
 
 module.exports = function (app) {
 
@@ -34,6 +34,14 @@ module.exports = function (app) {
 
     .post(async function (req, res){
       var title = req.body.title;
+      if (!title) {
+          return res.status(422).send('Require `title` field input');
+      }
+      let r = await col.insertOne({title: title});
+      if (r.insertedCount == 1) {
+          return res.json(r.ops[0]);
+      }
+      return res.status(500).send('DB insertion failed');
       //response will contain new book object including atleast _id and title
     })
 
