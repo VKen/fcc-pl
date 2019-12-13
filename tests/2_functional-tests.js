@@ -15,6 +15,9 @@ chai.use(chaiHttp);
 
 suite('Functional Tests', function() {
 
+  let book_id,
+      invalid_id = '5df0d8b60ddb3b196b5494f2';
+
   /*
   * ----[EXAMPLE TEST]----
   * Each test should completely test the response of the API end-point including response status code!
@@ -55,6 +58,7 @@ suite('Functional Tests', function() {
             assert.property(res.body, 'title', 'Book should contain title');
             assert.property(res.body, '_id', 'Book should contain _id');
             assert.equal(res.body.title, 'new title');
+            book_id = res.body._id;
             done();
           });
       });
@@ -97,11 +101,30 @@ suite('Functional Tests', function() {
     suite('GET /api/books/[id] => book object with [id]', function(){
 
       test('Test GET /api/books/[id] with id not in db',  function(done){
-        //done();
+        chai.request(server)
+          .get(`/api/books/${invalid_id}`)
+          .end(function(err, res){
+            assert.equal(res.status, 200);
+            assert.isObject(res.body, 'response should be an object');
+            assert.isEmpty(res.body);
+            done();
+          });
       });
 
       test('Test GET /api/books/[id] with valid id in db',  function(done){
-        //done();
+        chai.request(server)
+          .get(`/api/books/${book_id}`)
+          .end(function(err, res){
+            assert.equal(res.status, 200);
+            assert.isObject(res.body, 'response should be an object');
+            assert.property(res.body, '_id', 'Book should contain _id');
+            assert.property(res.body, 'title', 'Book should contain title');
+            assert.equal(res.body.title, 'new title');
+            assert.property(res.body, 'comments', 'Book should contain comment');
+            assert.isArray(res.body.comments, 'response should be an array');
+            assert.isEmpty(res.body.comments);  // tested item is empty
+            done();
+          });
       });
 
     });

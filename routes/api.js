@@ -34,9 +34,6 @@ module.exports = function (app) {
           {$unset: "comments"}
       ]).toArray();
       res.json(r);
-      // aggregate comment count if any
-      //response will be array of book objects
-      //json res format: [{"_id": bookid, "title": book_title, "commentcount": num_of_comments },...]
     })
 
     .post(async function (req, res){
@@ -49,7 +46,6 @@ module.exports = function (app) {
           return res.json(r.ops[0]);
       }
       return res.status(500).send('DB insertion failed');
-      //response will contain new book object including atleast _id and title
     })
 
     .delete(async function(req, res){
@@ -61,7 +57,15 @@ module.exports = function (app) {
   app.route('/api/books/:id')
     .get(async function (req, res){
       var bookid = req.params.id;
-      //json res format: {"_id": bookid, "title": book_title, "comments": [comment,comment,...]}
+      let r = await col.aggregate([
+          { $match: { _id: new ObjectId(bookid) } },
+          { $addFields: { comments: { $ifNull: [ "$comments", [] ] } } }
+      ]).toArray();
+      if (r.length == 1) {
+        return res.json(r[0]);
+      } else {
+        return res.json({});
+      }
     })
 
     .post(async function(req, res){
