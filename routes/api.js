@@ -29,9 +29,9 @@ module.exports = function (app) {
   app.route('/api/books')
     .get(async function (req, res){
       let r = await col.aggregate([
-          {$unwind: {path: "$comments", preserveNullAndEmptyArrays: true}},
-          {$addFields: {commentcount: {$sum: "$comments"}}},
-          {$unset: "comments"}
+        { $addFields: { comments: { $ifNull: [ "$comments", [] ] } } },  // add comments field if null
+        { $addFields: { commentcount: { $size: "$comments" } } },  // commentcount
+        {$project: {title: 1, commentcount: 1, }}
       ]).toArray();
       res.json(r);
     })
