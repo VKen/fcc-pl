@@ -1,9 +1,9 @@
 $( document ).ready(function() {
-  var items = [];
+  var items;
   var itemsRaw = [];
-  
-  $.getJSON('/api/books', function(data) {
-    //var items = [];
+
+  const loadbooks = () => {$.getJSON('/api/books', function(data) {
+    items = [];
     itemsRaw = data;
     $.each(data, function(i, val) {
       items.push('<li class="bookItem" id="' + i + '">' + val.title + ' - ' + val.commentcount + ' comments</li>');
@@ -16,8 +16,9 @@ $( document ).ready(function() {
       'class': 'listWrapper',
       html: items.join('')
       }).appendTo('#display');
-  });
-  
+  })};
+  loadbooks();
+
   var comments = [];
   $('#display').on('click','li.bookItem',function() {
     $("#detailTitle").html('<b>'+itemsRaw[this.id].title+'</b> (id: '+itemsRaw[this.id]._id+')');
@@ -32,18 +33,23 @@ $( document ).ready(function() {
       $('#detailComments').html(comments.join(''));
     });
   });
-  
+
   $('#bookDetail').on('click','button.deleteBook',function() {
     $.ajax({
       url: '/api/books/'+this.id,
       type: 'delete',
       success: function(data) {
         //update list
-        $('#detailComments').html('<p style="color: red;">'+data+'<p><p>Refresh the page</p>');
+        //$('#detailComments').html('<p style="color: red;">'+data+'<p><p>Refresh the page</p>');
+        $('#display > *').remove();
+        loadbooks();
+        // reset comments
+        $('#bookDetail #detailTitle').text("Select a book to see it's details and comments");
+        $('#bookDetail #detailComments > *').remove();
       }
     });
-  });  
-  
+  });
+
   $('#bookDetail').on('click','button.addComment',function() {
     var newComment = $('#commentToAdd').val();
     $.ajax({
@@ -57,8 +63,9 @@ $( document ).ready(function() {
       }
     });
   });
-  
-  $('#newBook').click(function() {
+
+  $('#newBook').click(function(e) {
+    e.preventDefault();
     $.ajax({
       url: '/api/books',
       type: 'post',
@@ -66,20 +73,26 @@ $( document ).ready(function() {
       data: $('#newBookForm').serialize(),
       success: function(data) {
         //update list
+        $('#display > *').remove();
+        loadbooks();
       }
     });
   });
-  
+
   $('#deleteAllBooks').click(function() {
+    console.log('delete all books click')
     $.ajax({
       url: '/api/books',
       type: 'delete',
-      dataType: 'json',
-      data: $('#newBookForm').serialize(),
       success: function(data) {
         //update list
+        $('#display ul li').remove();
+        loadbooks();
+        // reset comments
+        $('#bookDetail #detailTitle').text("Select a book to see it's details and comments");
+        $('#bookDetail #detailComments > *').remove();
       }
     });
-  }); 
-  
+  });
+
 });
