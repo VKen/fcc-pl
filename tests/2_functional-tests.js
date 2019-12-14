@@ -21,7 +21,6 @@ suite('Functional Tests', function() {
   /*
   * ----[EXAMPLE TEST]----
   * Each test should completely test the response of the API end-point including response status code!
-  */
   test('#example Test GET /api/books', function(done){
      chai.request(server)
       .get('/api/books')
@@ -133,7 +132,24 @@ suite('Functional Tests', function() {
     suite('POST /api/books/[id] => add comment/expect book object with id', function(){
 
       test('Test POST /api/books/[id] with comment', function(done){
-        //done();
+        let comment = "comment on book";
+        chai.request(server)
+          .post(`/api/books/${book_id}`)
+          .send({
+              comment: comment,
+          })
+          .end(function(err, res){
+            assert.equal(res.status, 200);
+            assert.isObject(res.body, 'response should be an object');
+            assert.property(res.body, '_id', 'Book should contain _id');
+            assert.equal(res.body._id, book_id);
+            assert.property(res.body, 'title', 'Book should contain title');
+            assert.equal(res.body.title, 'new title');
+            assert.property(res.body, 'comments', 'Book should contain comment');
+            assert.isArray(res.body.comments, 'response should be an array');
+            assert.equal(res.body.comments[0], comment);
+            done();
+          });
       });
 
     });

@@ -71,7 +71,30 @@ module.exports = function (app) {
     .post(async function(req, res){
       var bookid = req.params.id;
       var comment = req.body.comment;
-      //json res format same as .get
+      // add the empty array first
+      let r = await col.findOneAndUpdate({
+        _id: new ObjectId(bookid),
+        comments: { $exists: false }
+      },
+      {
+        $set: { comments: [] }
+      });
+      // insert to array
+      let r2 = await col.findOneAndUpdate({
+        _id: new ObjectId(bookid),
+      },
+      {
+        $push: { comments: comment }
+      },
+      {
+        returnOriginal: false,
+      });
+
+      if (r2.ok) {
+        return res.json(r2.value);
+      }
+      res.status(500).send('error writing to DB');
+
     })
 
     .delete(async function(req, res){
