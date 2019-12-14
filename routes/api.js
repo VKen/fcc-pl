@@ -50,6 +50,11 @@ module.exports = function (app) {
 
     .delete(async function(req, res){
       //if successful response will be 'complete delete successful'
+      let r = await col.drop();
+      if (r === true) {
+        return res.send('complete delete successful');
+      }
+      return res.status(500).send('DB insertion failed');
     });
 
 
@@ -94,12 +99,18 @@ module.exports = function (app) {
         return res.json(r2.value);
       }
       res.status(500).send('error writing to DB');
-
     })
 
     .delete(async function(req, res){
       var bookid = req.params.id;
+      let r = await col.findOneAndDelete({
+        _id: new ObjectId(bookid),
+      });
       //if successful response will be 'delete successful'
+      if (r.ok) {
+         return res.send('delete successful');
+      }
+      res.status(500).send('error writing to DB');
     });
 
 };

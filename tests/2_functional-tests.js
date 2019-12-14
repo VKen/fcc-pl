@@ -154,6 +154,20 @@ suite('Functional Tests', function() {
 
     });
 
+    suite('POST /api/books/[id] => delete book object with id', function(){
+
+      test('Test POST /api/books/[id] with comment', function(done){
+        chai.request(server)
+          .delete(`/api/books/${book_id}`)
+          .end(function(err, res){
+            assert.equal(res.status, 200);
+            assert.equal(res.text, 'delete successful');
+            done();
+          });
+      });
+
+    });
+
   });
 
 });
