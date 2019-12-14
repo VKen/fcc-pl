@@ -50,11 +50,16 @@ module.exports = function (app) {
 
     .delete(async function(req, res){
       //if successful response will be 'complete delete successful'
-      let r = await col.drop();
-      if (r === true) {
-        return res.send('complete delete successful');
+      try {
+        let r = await col.drop();
+        if (r === true) {
+            return res.send('complete delete successful');
+        }
+        return res.status(500).send('DB collection deletion failed');
+      } catch (e) {
+        if (e.codeName == 'NamespaceNotFound') return res.send('Collection already deleted');
+        return res.status(500).send(e.errmsg);
       }
-      return res.status(500).send('DB insertion failed');
     });
 
 
